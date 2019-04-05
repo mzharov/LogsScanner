@@ -16,19 +16,27 @@ import java.util.stream.Collectors;
 public class UserInterface {
 
     private final static String EXIT = "exit";
-    private static InputLine inputLine; //Структура для хранения строки
-    private static LinkedList<Path> filesList; //Список для хранения путей к файлам
-    private static Boolean found; //Флаг, покаывающий, были ли найдены подстроки в указанных файлах
+    private static InputLine inputLine;         //Структура для хранения строки
+    private static LinkedList<Path> filesList;  //Список для хранения путей к файлам
+    private static Boolean found;               //Флаг, покаывающий, были ли найдены подстроки в указанных файлах
 
     /**
      * Проверка входной строки на корректность
-     * @param line входная строка
+     * @param inputString входная строка
      * @return  true - если все элементы соотвествуют необходимым параметрам;
      *          false -  1) если хотя бы один элемент не соответствует формату,
      *                   2) если указанные директории не существуют,
      *                   3) если не были указаны расширения или они имеют неправильынй формат
      */
-    private static boolean validateLine(String[] line) {
+    public static boolean validateLine(String inputString) {
+
+        //Разделение строки и удаление лишних пробельных символов
+        String[] line
+                = inputString.replace("\\s+", " ").split(";");
+        for (int iterator = 0; iterator < line.length; iterator++) {
+            line[iterator] = line[iterator].trim();
+        }
+
         if(!InputParser.checkArraySize(line.length)) {
             System.out.println("> Неверный формат входных параметров");
             return false;
@@ -185,15 +193,9 @@ public class UserInterface {
                     break;
                 }
 
-                //Разделение строки и удаление лишних пробельных символов
-                String[] inputLineArrayTemp
-                        = inputLine.replace("\\s+", " ").split(";");
-                for (int iterator = 0; iterator < inputLineArrayTemp.length; iterator++) {
-                    inputLineArrayTemp[iterator] = inputLineArrayTemp[iterator].trim();
-                }
 
                 //Проверка введенных данных
-                if(validateLine(inputLineArrayTemp)) {
+                if(validateLine(inputLine)) {
 
                     //Если не удалось получить список файлов из директории, то продолжаем диалог с начала цикла
                     if(!getFilesList()) continue;
