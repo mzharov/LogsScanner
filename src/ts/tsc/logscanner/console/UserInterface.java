@@ -15,10 +15,9 @@ import java.util.stream.Collectors;
 
 public class UserInterface {
 
-    private final static String EXIT = "exit";
     private static InputLine inputLine;         //Структура для хранения строки
     private static LinkedList<Path> filesList;  //Список для хранения путей к файлам
-    private static Boolean found  = false;               //Флаг, покаывающий, были ли найдены подстроки в указанных файлах
+    private static boolean found  = false;      //Флаг, показывающий, были ли найдены подстроки в указанных файлах
 
     /**
      * Проверка входной строки на корректность
@@ -28,7 +27,7 @@ public class UserInterface {
      *                   2) если указанные директории не существуют,
      *                   3) если не были указаны расширения или они имеют неправильынй формат
      */
-    public static boolean validateLine(String inputString) {
+    private static boolean validateLine(String inputString) {
 
         //Разделение строки и удаление лишних пробельных символов
         String[] line
@@ -100,10 +99,13 @@ public class UserInterface {
     /**
      * Изменение из потока состояния флага записи на true
      */
-    public static void setFound() {
+    public static void setFoundTrue() {
         found = true;
     }
-    public static Boolean getFound() {return found;}
+    private static void setFoundFalse() {
+        found = false;
+    }
+    public static boolean getFound() {return found;}
 
     /**
      * Обход указанной директории и сохранение путей к файлам в список
@@ -157,7 +159,8 @@ public class UserInterface {
             try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(inputLine.getOutputPath()),
                     Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
                 writer.newLine();
-                writer.write("> Поиск длился всего: " + timeSpent/1000 + " секунд");
+                writer.write("Поиск длился всего: " + timeSpent/1000 + " секунд");
+                writer.newLine();
                 writer.newLine();
                 System.out.println("> Данные записаны в файл " + file);
             } catch(IOException ex){
@@ -171,8 +174,9 @@ public class UserInterface {
         if(!file.exists() && found) {
             System.out.println("> Выходной файл с результатами поиска не найден, возможно он был удален");
         }
+
         //Установление флага в состояние false
-        found = false;
+        setFoundFalse();
     }
     /**
      * Считывание входных параметров и запус потоков обработки
@@ -182,7 +186,7 @@ public class UserInterface {
         System.out.println("> Введите через точку с запятой (;) данные для поиска в логах в указанном формате:\n" +
                 "количество потоков; текст для поиска (более одного символа); начальный каталог; путь до выходного файла; " +
                 "список расширений, в которых будет осуществляться поиск (одно или более)\n" +
-                "Пример: 15; password; C:\\logs; c:\\temp\\out.txt; txt log out\n" +
+                "Пример: 15; password; C:\\logs; c:\\temp\\out.txt; txt log out err\n" +
                 "для выхода введите команду exit");
 
         //Считывание ввода данных с консоли
@@ -192,24 +196,25 @@ public class UserInterface {
             while (true) {
 
                 //Считывание из буфера в строку
-                String inputLine = inputBuffer.readLine();
+                String input = inputBuffer.readLine();
 
                 //Выход, если введено ключевое слово exit
-                if (inputLine.toLowerCase().equals(EXIT)) {
+                if (input.toLowerCase().equals("exit")) {
                     break;
                 }
 
 
                 //Проверка введенных данных
-                if(validateLine(inputLine)) {
+                if(validateLine(input)) {
 
                     //Если не удалось получить список файлов из директории, то продолжаем диалог с начала цикла
                     if(!getFilesList()) continue;
 
                     //Если не было найдены файлы с нужными расширениями, продолжаем с начала цикла
                     if(filesList.size() < 1) {
-                        System.out.println("> В указанной директории не было найдено подходящих файлов, " +
-                                "попробуйте изменить запрос");
+                        System.out.println("> В указанной директории не было найдено " +
+                                "файлов с указанными расширениями, " +
+                                " попробуйте изменить запрос");
                     } else {
                         //Вызов метода для поиска подстроки в файлах
                         search();

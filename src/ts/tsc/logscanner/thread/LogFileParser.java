@@ -111,7 +111,7 @@ public class LogFileParser implements Runnable{
             /*
             * Запись в файл черех буферный вывод.
             * Если он существует, режим добавления в конец,
-            * иначе создание новго и запись в него
+            * иначе создание нового и запись в него
             */
             try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
@@ -122,7 +122,14 @@ public class LogFileParser implements Runnable{
             }catch(IOException ex){
                 System.out.println("Ошибка в ходе записи в файл");
             }
-            UserInterface.setFound();
+
+            /*
+             * Установка флага, хранящего состояние поиска, в состояние true,
+             * если он еще не в этом состоянии
+             */
+            if(!UserInterface.getFound()) {
+                UserInterface.setFoundTrue();
+            }
         }
     }
 }
