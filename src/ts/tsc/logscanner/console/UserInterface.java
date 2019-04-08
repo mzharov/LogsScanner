@@ -131,7 +131,7 @@ public class UserInterface {
      */
     private static void search() {
         //Установка времени начала поиска
-        double startTime = System.currentTimeMillis();
+        double startTime = System.nanoTime();
 
         //Создание необходимого количества потоков с заданными параметрами
         Thread[] parseThreads = new Thread[inputLine.getNumberOfThreads()];
@@ -151,7 +151,7 @@ public class UserInterface {
         }
 
         //Вычисление времени выполнения поиска
-        double timeSpent = System.currentTimeMillis() - startTime;
+        double timeSpent = System.nanoTime() - startTime;
 
         //Запись в файл списка строк, если они были найдены и файл существует
         File file = new File(inputLine.getOutputPath());
@@ -159,7 +159,7 @@ public class UserInterface {
             try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(inputLine.getOutputPath()),
                     Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
                 writer.newLine();
-                writer.write("Поиск длился всего: " + timeSpent/1000 + " секунд");
+                writer.write("Поиск длился всего: " + timeSpent/1000000000 + " секунд");
                 writer.newLine();
                 writer.newLine();
                 System.out.println("> Данные записаны в файл " + file);
@@ -186,7 +186,7 @@ public class UserInterface {
         System.out.println("> Введите через точку с запятой (;) данные для поиска в логах в указанном формате:\n" +
                 "количество потоков; текст для поиска (более одного символа); начальный каталог; путь до выходного файла; " +
                 "список расширений, в которых будет осуществляться поиск (одно или более)\n" +
-                "Пример: 15; password; C:\\logs; c:\\temp\\out.txt; txt log out err\n" +
+                "Пример: 15; password; c:\\logs; c:\\temp\\out.txt; txt log out err\n" +
                 "для выхода введите команду exit");
 
         //Считывание ввода данных с консоли

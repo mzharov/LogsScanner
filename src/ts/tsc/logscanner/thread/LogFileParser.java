@@ -115,20 +115,23 @@ public class LogFileParser implements Runnable{
             */
             try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
+
+                // Запись списка строковых значений в файл
                 for(String line : lines) {
                     writer.write(line);
                     writer.newLine();
                 }
+
+                /*
+                 * Установка флага, хранящего состояние поиска, в состояние true,
+                 * если он еще не в этом состоянии
+                 */
+                if(!UserInterface.getFound()) {
+                    UserInterface.setFoundTrue();
+                }
+
             }catch(IOException ex){
                 System.out.println("Ошибка в ходе записи в файл");
-            }
-
-            /*
-             * Установка флага, хранящего состояние поиска, в состояние true,
-             * если он еще не в этом состоянии
-             */
-            if(!UserInterface.getFound()) {
-                UserInterface.setFoundTrue();
             }
         }
     }
