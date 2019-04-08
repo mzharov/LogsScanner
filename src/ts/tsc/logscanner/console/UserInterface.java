@@ -18,7 +18,7 @@ public class UserInterface {
     private final static String EXIT = "exit";
     private static InputLine inputLine;         //Структура для хранения строки
     private static LinkedList<Path> filesList;  //Список для хранения путей к файлам
-    private static Boolean found;               //Флаг, покаывающий, были ли найдены подстроки в указанных файлах
+    private static Boolean found  = false;               //Флаг, покаывающий, были ли найдены подстроки в указанных файлах
 
     /**
      * Проверка входной строки на корректность
@@ -84,12 +84,12 @@ public class UserInterface {
                 validExtensions[iterator] = true;
                 count++;
             } else {
-                System.out.println("Строка " + extensions[iterator] + " не соответствует формату расширений");
+                System.out.println("> Строка " + extensions[iterator] + " не соответствует формату расширений");
             }
         }
 
         if(count < 1) {
-            System.out.println("В списке расширений нет подходящих под формат расширений");
+            System.out.println("> В списке расширений нет подходящих под формат расширений");
             return false;
         }
 
@@ -103,6 +103,7 @@ public class UserInterface {
     public static void setFound() {
         found = true;
     }
+    public static Boolean getFound() {return found;}
 
     /**
      * Обход указанной директории и сохранение путей к файлам в список
@@ -118,7 +119,7 @@ public class UserInterface {
                             .collect(Collectors.toCollection(LinkedList::new));
             return true;
         } catch (IOException e) {
-            System.out.println("Ошибка в ходе просмотра директории, повторите запрос");
+            System.out.println("> Ошибка в ходе просмотра директории, повторите запрос");
             return false;
         }
     }
@@ -143,7 +144,7 @@ public class UserInterface {
             try {
                 parseThread.join();
             } catch (InterruptedException e) {
-                System.out.println("Ошибка в ходе работы потоков");
+                System.out.println("> Ошибка в ходе работы потоков");
             }
         }
 
@@ -152,18 +153,23 @@ public class UserInterface {
 
         //Запись в файл списка строк, если они были найдены и файл существует
         File file = new File(inputLine.getOutputPath());
-        if(file.exists() && file.length() > 0 && found) {
+        if(file.exists() && found) {
             try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(inputLine.getOutputPath()),
                     Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
                 writer.newLine();
-                writer.write("Поиск длился всего: " + timeSpent/1000 + " секунд");
+                writer.write("> Поиск длился всего: " + timeSpent/1000 + " секунд");
                 writer.newLine();
-                System.out.println("Данные записаны в файл " + file);
+                System.out.println("> Данные записаны в файл " + file);
             } catch(IOException ex){
-                System.out.println("Ошибка в ходе записи в файл");
+                System.out.println("> Ошибка в ходе записи в файл");
             }
-        } else {
-            System.out.println("Данные не были найдены или файл был удален");
+        }
+        if(!found) {
+            System.out.println("> В логах не было найдено указанной подстроки: "
+                    + inputLine.getErrorMessage());
+        }
+        if(!file.exists() && found) {
+            System.out.println("> Выходной файл с результатами поиска не найден, возможно он был удален");
         }
         //Установление флага в состояние false
         found = false;
@@ -202,19 +208,19 @@ public class UserInterface {
 
                     //Если не было найдены файлы с нужными расширениями, продолжаем с начала цикла
                     if(filesList.size() < 1) {
-                        System.out.println("В указанной директории не было найдено подходящих файлов, " +
+                        System.out.println("> В указанной директории не было найдено подходящих файлов, " +
                                 "попробуйте изменить запрос");
                     } else {
                         //Вызов метода для поиска подстроки в файлах
                         search();
-                        System.out.println("Введите новый запрос для поиска или введите слово exit  для выхода");
+                        System.out.println("> Введите новый запрос для поиска или введите слово exit  для выхода");
                     }
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Ошибка в ходе чтения с консоли");
+            System.out.println("> Ошибка в ходе чтения с консоли");
         }
-        System.out.println("Выполнение программы закончено");
+        System.out.println("> Выполнение программы закончено");
     }
 }

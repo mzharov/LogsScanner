@@ -109,22 +109,12 @@ public class LogFileParser implements Runnable{
         if(lines.size() > 0) {
 
             /*
-            * Проверка, существует ли файл, чтобы отпределить режим записи
-            * Если существует, режим добавления в конец,
-            * иначе режим записи в новый файл
+            * Запись в файл черех буферный вывод.
+            * Если он существует, режим добавления в конец,
+            * иначе создание новго и запись в него
             */
-            File file = new File(inputLine.getOutputPath());
-            StandardOpenOption mode;
-            UserInterface.setFound();
-
-            if(file.exists()) {
-                mode = StandardOpenOption.APPEND;
-            } else {
-                mode = StandardOpenOption.CREATE;
-            }
-
-            //Запись в файл черех буферный вывод
-            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"), mode)){
+            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"),
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
                 for(String line : lines) {
                     writer.write(line);
                     writer.newLine();
@@ -132,6 +122,7 @@ public class LogFileParser implements Runnable{
             }catch(IOException ex){
                 System.out.println("Ошибка в ходе записи в файл");
             }
+            UserInterface.setFound();
         }
     }
 }
