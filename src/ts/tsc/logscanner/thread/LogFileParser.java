@@ -1,6 +1,7 @@
 package ts.tsc.logscanner.thread;
 
-import ts.tsc.logscanner.console.UserInterface;
+import ts.tsc.logscanner.console.Console;
+import ts.tsc.logscanner.console.ConsoleInterface;
 import ts.tsc.logscanner.inputline.InputLine;
 
 import java.io.*;
@@ -17,17 +18,17 @@ import java.util.List;
  */
 public class LogFileParser implements Runnable{
 
-    private final LinkedList<Path> filesList;   // Список, в котором хранятся пути к файлам
+    //private final LinkedList<Path> filesList;   // Список, в котором хранятся пути к файлам
+    private final ConsoleInterface console;
     private final InputLine inputLine;          // Структура для хранения входной строки
     private final int threadNumber;             //Номер потока
 
     /**
-     * @param filesList список, хранящий пути к файлам
      * @param inputLine структура, в которой хранится входная строка
      * @param threadNumber номер потока
      */
-    public LogFileParser(LinkedList<Path> filesList, InputLine inputLine, int threadNumber) {
-        this.filesList = filesList;
+    public LogFileParser(ConsoleInterface console, InputLine inputLine, int threadNumber) {
+        this.console = console;
         this.inputLine = inputLine;
         this.threadNumber = threadNumber;
     }
@@ -39,17 +40,12 @@ public class LogFileParser implements Runnable{
      */
     @Override
     public void run() {
-        boolean hasNext = true;
         Path path;
-        synchronized (filesList) {
-            path = filesList.peek();
-            if(path != null) {
-                filesList.pop();
-            } else hasNext = false;
-        }
-        if(hasNext)  {
+        while (true) {
+            path = console.popListElement();
+            if(path == null && console.isSearchFinished()) break;
+            if(path == null) continue;
             parseFile(path);
-            run();
         }
     }
 
@@ -61,10 +57,10 @@ public class LogFileParser implements Runnable{
         List<String> lines = new LinkedList<>();
 
         //Начнаем считывать файл в буфер по строкам
-        try (BufferedReader bufferedReader = Files.newBufferedReader(path, Charset.forName("UTF-8"))) {
+        try (BufferedReader bufferedReader = Files.newBufferedReader(path, Charset.forName("ISO-8859-1"))) {
             String line;
 
-            //Счтываем, пока не будет найден конец файла
+            //Считываем, пока не будет найден конец файла
             while ((line = bufferedReader.readLine()) != null) {
 
                 //Проверяем считанную строку на содержание подстроки
@@ -93,6 +89,7 @@ public class LogFileParser implements Runnable{
 
         } catch (IOException e) {
             System.out.println("Ошибка в ходе чтения файла " + path.toString());
+            //e.printStackTrace();
             return;
         }
         //Вызов метода для записи в списка в файл
@@ -107,13 +104,12 @@ public class LogFileParser implements Runnable{
     private synchronized void writeToFile(List<String> lines, Path path) {
         //Если список не пуст начинаем запись
         if(lines.size() > 0) {
-
             /*
             * Запись в файл через буферный вывод.
             * Если он существует, режим добавления в конец,
             * иначе создание нового и запись в него
             */
-            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"),
+            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("ISO-8859-1"),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
 
                 // Запись списка строковых значений в файл
@@ -126,12 +122,13 @@ public class LogFileParser implements Runnable{
                  * Установка флага, хранящего состояние поиска, в состояние true,
                  * если он еще не в этом состоянии
                  */
-                if(!UserInterface.getFound()) {
-                    UserInterface.setFoundTrue();
+                if(!Console.getFound()) {
+                    Console.setFoundTrue();
                 }
 
             }catch(IOException ex){
-                System.out.println("Ошибка в ходе записи в файл");
+                //System.out.println("Ошибка в ходе записи в файл");
+                ex.printStackTrace();
             }
         }
     }

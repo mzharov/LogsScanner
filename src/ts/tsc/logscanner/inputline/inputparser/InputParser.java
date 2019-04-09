@@ -31,6 +31,16 @@ public class InputParser {
             return false;
         }
     }
+    public static boolean isAccessible(String path) {
+        return Files.isWritable(Paths.get(path));
+    }
+    public static boolean isRegular(String path) {
+        if(Files.exists(Paths.get(path))) {
+            return Files.isRegularFile(Paths.get(path));
+        } else {
+            return true;
+        }
+    }
 
     /**
      * Проверка количества введенных потоков
@@ -54,6 +64,7 @@ public class InputParser {
             return true;
         }
     }
+
 
     /**
      * Проверка на соответствие расширения

@@ -1,5 +1,6 @@
 package ts.tsc.logscanner.console;
 
+import ts.tsc.logscanner.console.diretorythread.CheckDirectory;
 import ts.tsc.logscanner.inputline.InputLine;
 import ts.tsc.logscanner.inputline.inputparser.InputParser;
 import ts.tsc.logscanner.thread.LogFileParser;
@@ -11,13 +12,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.LinkedList;
-import java.util.stream.Collectors;
 
-public class UserInterface {
+public class Console implements ConsoleInterface{
 
     private static InputLine inputLine;         //Структура для хранения строки
-    private static LinkedList<Path> filesList;  //Список для хранения путей к файлам
+    private static final
+    LinkedList<Path> filesList = new LinkedList<>();  //Список для хранения путей к файлам
     private static boolean found  = false;      //Флаг, показывающий, были ли найдены подстроки в указанных файлах
+    private static boolean dirEnd;
 
     /**
      * Проверка входной строки на корректность
@@ -66,16 +68,32 @@ public class UserInterface {
             return false;
         }
         if(InputParser.isEmpty(line[3])) {
-            System.out.println("> Не указаны расширения (введен пробел или пустое значение)");
-            return false;
-        }
-        int delimiter = line[3].lastIndexOf("\\");
-        if(InputParser.checkDirectory(line[3].substring(0, delimiter))) {
-            System.out.println("> Директории, указанной для выходного файла не существует: "
-                    + line[3].substring(0, delimiter));
+            System.out.println("> Не указан путь к выходному файлу (введен пробел или пустое значение)");
             return false;
         }
 
+        int delimiter = line[3].lastIndexOf("\\");
+        String tmpOutPath = line[3].substring(0, delimiter);
+        String tmpFile = line[3].substring(delimiter+1);
+        if(InputParser.checkDirectory(tmpOutPath)) {
+            System.out.println("> Директории, указанной для выходного файла не существует: "
+                    + tmpOutPath);
+            return false;
+        }
+        if(!InputParser.isAccessible(tmpOutPath)) {
+            System.out.println("> Директория, указанная для выходного файла недоступна для записи: "
+                    + tmpOutPath);
+            return false;
+        }
+        if(!InputParser.isRegular(line[3])) {
+            System.out.println("> " + tmpFile + " не является файлом");
+            return false;
+        }
+
+        if(InputParser.isEmpty(line[4])) {
+            System.out.println("> Не указаны расширения (введен пробел или пустое значение)");
+            return false;
+        }
         String[] extensions = line[4].toLowerCase().split("\\s+");
         boolean[] validExtensions = new boolean[extensions.length];
         int count = 0;
@@ -110,29 +128,17 @@ public class UserInterface {
     }
     public static boolean getFound() {return found;}
 
-    /**
-     * Обход указанной директории и сохранение путей к файлам в список
-     * @return список файлов
-     */
-    private static boolean getFilesList() {
-        try {
-            filesList  =
-                    Files.find(Paths.get(inputLine.getInputDir()),
-                            Integer.MAX_VALUE,
-                            (filePath, fileAttr) -> fileAttr.isRegularFile())
-                            .filter(path->InputParser.isRightExtension(path, inputLine.getExtensions()))
-                            .collect(Collectors.toCollection(LinkedList::new));
-            return true;
-        } catch (IOException e) {
-            System.out.println("> Ошибка в ходе просмотра директории, повторите запрос");
-            return false;
-        }
-    }
 
     /**
      * Поиск подстроки в списке файлов из директории
      */
-    private static void search() {
+    private void search() {
+
+        Thread dirThread = new Thread(new CheckDirectory(this,
+                inputLine.getInputDir(),
+                inputLine.getExtensions()));
+        dirThread.start();
+
         //Установка времени начала поиска
         double startTime = System.nanoTime();
 
@@ -140,7 +146,7 @@ public class UserInterface {
         Thread[] parseThreads = new Thread[inputLine.getNumberOfThreads()];
         for(int iterator = 0; iterator < parseThreads.length; iterator++) {
             parseThreads[iterator] =
-                    new Thread(new LogFileParser(filesList, inputLine, iterator+1));
+                    new Thread(new LogFileParser(this, inputLine, iterator+1));
             parseThreads[iterator].start();
         }
 
@@ -162,12 +168,14 @@ public class UserInterface {
             try(BufferedWriter writer = Files.newBufferedWriter(Paths.get(inputLine.getOutputPath()),
                     Charset.forName("UTF-8"), StandardOpenOption.APPEND)){
                 writer.newLine();
-                writer.write("Поиск длился всего: " + timeSpent/1000000000 + " секунд");
+                String time = "Поиск длился всего: " + timeSpent/1000000000 + " секунд";
+                writer.write(time);
                 writer.newLine();
                 writer.newLine();
                 System.out.println("> Данные записаны в файл " + file);
             } catch(IOException ex){
                 System.out.println("> Ошибка в ходе записи в файл");
+                ex.printStackTrace();
             }
         }
         if(!found) {
@@ -184,9 +192,8 @@ public class UserInterface {
 
     /**
      * Считывание входных параметров и запуск потоков обработки
-     * @param args стандартные входные параметры
      */
-    public static void main(String[] args) {
+    public void main() {
         System.out.println("> Введите через точку с запятой (;) данные для поиска в логах в указанном формате:\n" +
                 "количество потоков; текст для поиска (более одного символа); начальный каталог; путь до выходного файла; " +
                 "список расширений, в которых будет осуществляться поиск (одно или более)\n" +
@@ -209,20 +216,8 @@ public class UserInterface {
 
                 //Проверка введенных данных
                 if(validateLine(input)) {
-
-                    //Если не удалось получить список файлов из директории, то продолжаем диалог с начала цикла
-                    if(!getFilesList()) continue;
-
-                    //Если не было найдены файлы с нужными расширениями, продолжаем с начала цикла
-                    if(filesList.size() < 1) {
-                        System.out.println("> В указанной директории не было найдено " +
-                                "файлов с указанными расширениями, " +
-                                " попробуйте изменить запрос");
-                    } else {
-                        //Вызов метода для поиска подстроки в файлах
-                        search();
-                        System.out.println("> Введите новый запрос для поиска или введите слово exit  для выхода");
-                    }
+                    search();
+                    System.out.println("> Введите новый запрос для поиска или введите слово exit  для выхода");
                 }
             }
 
@@ -230,5 +225,33 @@ public class UserInterface {
             System.out.println("> Ошибка в ходе чтения с консоли");
         }
         System.out.println("> Выполнение программы закончено");
+    }
+
+    @Override
+    public synchronized Path popListElement() {
+        if(filesList.size() > 0) {
+            return filesList.pop();
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public synchronized void addListElement(Path list) {
+        filesList.add(list);
+    }
+
+    @Override
+    public synchronized boolean isSearchFinished() {
+        return dirEnd;
+    }
+
+    @Override
+    public synchronized void setDirEndTrue() {
+        dirEnd = true;
+    }
+    @Override
+    public synchronized void setDirEndFalse() {
+        dirEnd = false;
     }
 }
