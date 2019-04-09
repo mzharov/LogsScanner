@@ -1,4 +1,4 @@
-package ts.tsc.logscanner.console;
+package ts.tsc.logScanner.console;
 
 import java.nio.file.Path;
 

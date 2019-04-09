@@ -1,4 +1,4 @@
-package ts.tsc.logscanner.inputline;
+package ts.tsc.logScanner.inputLine;
 
 /**
  * Класс для хранения введенных данных

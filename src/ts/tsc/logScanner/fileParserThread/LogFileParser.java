@@ -1,9 +1,9 @@
-package ts.tsc.logscanner.thread;
+package ts.tsc.logScanner.fileParserThread;
 
-import ts.tsc.logscanner.console.Console;
-import ts.tsc.logscanner.console.ConsoleInterface;
-import ts.tsc.logscanner.inputline.InputLine;
-import ts.tsc.logscanner.observing.Observable;
+import ts.tsc.logScanner.console.Console;
+import ts.tsc.logScanner.console.ConsoleInterface;
+import ts.tsc.logScanner.inputLine.InputLine;
+import ts.tsc.logScanner.observing.Observable;
 
 import java.io.*;
 import java.nio.charset.Charset;

@@ -1,8 +1,8 @@
-package ts.tsc.logscanner.diretorythread;
+package ts.tsc.logScanner.diretoryThread;
 
-import ts.tsc.logscanner.console.ConsoleInterface;
-import ts.tsc.logscanner.inputline.inputparser.InputParser;
-import ts.tsc.logscanner.observing.Observable;
+import ts.tsc.logScanner.console.ConsoleInterface;
+import ts.tsc.logScanner.inputLine.inputParser.InputParser;
+import ts.tsc.logScanner.observing.Observable;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;

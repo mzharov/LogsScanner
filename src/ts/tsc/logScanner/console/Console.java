@@ -1,9 +1,9 @@
-package ts.tsc.logscanner.console;
+package ts.tsc.logScanner.console;
 
-import ts.tsc.logscanner.diretorythread.CheckDirectory;
-import ts.tsc.logscanner.inputline.InputLine;
-import ts.tsc.logscanner.inputline.inputparser.InputParser;
-import ts.tsc.logscanner.thread.LogFileParser;
+import ts.tsc.logScanner.diretoryThread.CheckDirectory;
+import ts.tsc.logScanner.inputLine.InputLine;
+import ts.tsc.logScanner.inputLine.inputParser.InputParser;
+import ts.tsc.logScanner.fileParserThread.LogFileParser;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -23,112 +23,15 @@ public class Console implements ConsoleInterface{
     private static boolean dirEnd;
 
     /**
-     * Проверка входной строки на корректность
-     * @param inputString входная строка
-     * @return  true - если все элементы соотвествуют необходимым параметрам;
-     *          false -  1) если хотя бы один элемент не соответствует формату,
-     *                   2) если указанные директории не существуют,
-     *                   3) если не были указаны расширения или они имеют неправильынй формат
+     * Проверка выходной строки на корректность
+     * @param inputString строка
+     * @return true - корректа, иначе - false
+     * результат зависит от метода
+     * {@link ts.tsc.logScanner.inputLine.inputParser.InputParser#validateLine(String)} ;}
      */
     private static boolean validateLine(String inputString) {
-
-        //Разделение строки и удаление лишних пробельных символов
-        String[] line
-                = inputString.replace("\\s+", " ").split(";");
-        for (int iterator = 0; iterator < line.length; iterator++) {
-            line[iterator] = line[iterator].trim();
-        }
-
-        if(!InputParser.checkArraySize(line.length)) {
-            System.out.println("> Неверный формат входных параметров");
-            return false;
-        }
-        if(!InputParser.parseNumberOfThreads(line[0])) {
-            System.out.println("> Указан неверный формат для количества потоков");
-            return false;
-        }
-        if(!InputParser.checkNumberOfThreads(line[0])) {
-            System.out.println("> Количество потоков должно быть больше нуля");
-            return false;
-        }
-        if(InputParser.isEmpty(line[1])) {
-            System.out.println("> Не указан текст ошибки (введен пробел или пустое значение)");
-            return false;
-        }
-        if(!InputParser.checkMessageLength(line[1])) {
-            System.out.println("> Текст для поиска должен содержать более одного символа");
-            return false;
-        }
-        if(InputParser.isEmpty(line[2])) {
-            System.out.println("> Не указана директория (введен пробел или пустое значение)");
-            return false;
-        }
-        if(InputParser.checkDirectory(line[2])) {
-            System.out.println("> Директории, указанной в качестве начального " +
-                    "каталога для поиска не существует: " + line[2]);
-            return false;
-        }
-        if(InputParser.isEmpty(line[3])) {
-            System.out.println("> Не указан путь к выходному файлу (введен пробел или пустое значение)");
-            return false;
-        }
-
-        int delimiter = line[3].lastIndexOf("\\");
-        if(delimiter == -1) {
-            System.out.println("> " + line[3] + " не является файлом");
-            return false;
-        }
-        String tmpOutPath = line[3].substring(0, delimiter);
-        String tmpFile = line[3].substring(delimiter);
-        if(InputParser.checkDirectory(tmpOutPath)) {
-            System.out.println("> Директории, указанной для выходного файла не существует: "
-                    + tmpOutPath);
-            return false;
-        }
-
-        if(!InputParser.isDirAccessible(tmpOutPath)) {
-            System.out.println("> Директория, указанная для выходного файла недоступна для записи: "
-                    + tmpOutPath);
-            return false;
-        }
-
-        if(!InputParser.isRegular(line[3])) {
-            System.out.println("> " + tmpFile + " не является файлом");
-            return false;
-        }
-
-        if(!InputParser.isFileCreatable(line[3])) {
-            System.out.println("> Нельзя создать выходной файл в указанной директории: "
-                    + tmpOutPath);
-            return false;
-        }
-
-
-        if(InputParser.isEmpty(line[4])) {
-            System.out.println("> Не указаны расширения (введен пробел или пустое значение)");
-            return false;
-        }
-        String[] extensions = line[4].toLowerCase().split("\\s+");
-        boolean[] validExtensions = new boolean[extensions.length];
-        int count = 0;
-        for(int iterator = 0; iterator < validExtensions.length; iterator++) {
-            boolean isMatches = InputParser.checkExtension(extensions[iterator]);
-            if(isMatches) {
-                validExtensions[iterator] = true;
-                count++;
-            } else {
-                System.out.println("> Строка " + extensions[iterator]
-                        + " не соответствует формату расширений");
-            }
-        }
-
-        if(count < 1) {
-            System.out.println("> В списке расширений нет подходящих под формат расширений");
-            return false;
-        }
-
-        inputLine = new InputLine(line[0], line[1], line[2], line[3], extensions);
-        return true;
+        inputLine = InputParser.validateLine(inputString);
+        return inputLine != null;
     }
 
 
