@@ -1,6 +1,6 @@
 package ts.tsc.logscanner.console;
 
-import ts.tsc.logscanner.console.diretorythread.CheckDirectory;
+import ts.tsc.logscanner.diretorythread.CheckDirectory;
 import ts.tsc.logscanner.inputline.InputLine;
 import ts.tsc.logscanner.inputline.inputparser.InputParser;
 import ts.tsc.logscanner.thread.LogFileParser;
@@ -15,10 +15,11 @@ import java.util.LinkedList;
 
 public class Console implements ConsoleInterface{
 
-    private static InputLine inputLine;         //Структура для хранения строки
+    private static InputLine inputLine;                 //Структура для хранения строки
     private static final
-    LinkedList<Path> filesList = new LinkedList<>();  //Список для хранения путей к файлам
-    private static boolean found  = false;      //Флаг, показывающий, были ли найдены подстроки в указанных файлах
+    LinkedList<Path> filesList = new LinkedList<>();    //Список для хранения путей к файлам
+    private static boolean found  = false;              //Флаг, показывающий,
+                                                        // были ли найдены подстроки в указанных файлах
     private static boolean dirEnd;
 
     /**
@@ -73,22 +74,35 @@ public class Console implements ConsoleInterface{
         }
 
         int delimiter = line[3].lastIndexOf("\\");
+        if(delimiter == -1) {
+            System.out.println("> " + line[3] + " не является файлом");
+            return false;
+        }
         String tmpOutPath = line[3].substring(0, delimiter);
-        String tmpFile = line[3].substring(delimiter+1);
+        String tmpFile = line[3].substring(delimiter);
         if(InputParser.checkDirectory(tmpOutPath)) {
             System.out.println("> Директории, указанной для выходного файла не существует: "
                     + tmpOutPath);
             return false;
         }
-        if(!InputParser.isAccessible(tmpOutPath)) {
+
+        if(!InputParser.isDirAccessible(tmpOutPath)) {
             System.out.println("> Директория, указанная для выходного файла недоступна для записи: "
                     + tmpOutPath);
             return false;
         }
+
         if(!InputParser.isRegular(line[3])) {
             System.out.println("> " + tmpFile + " не является файлом");
             return false;
         }
+
+        if(!InputParser.isFileCreatable(line[3])) {
+            System.out.println("> Нельзя создать выходной файл в указанной директории: "
+                    + tmpOutPath);
+            return false;
+        }
+
 
         if(InputParser.isEmpty(line[4])) {
             System.out.println("> Не указаны расширения (введен пробел или пустое значение)");

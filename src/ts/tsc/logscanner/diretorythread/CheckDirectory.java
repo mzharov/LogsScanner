@@ -1,4 +1,4 @@
-package ts.tsc.logscanner.console.diretorythread;
+package ts.tsc.logscanner.diretorythread;
 
 import ts.tsc.logscanner.console.ConsoleInterface;
 import ts.tsc.logscanner.inputline.inputparser.InputParser;

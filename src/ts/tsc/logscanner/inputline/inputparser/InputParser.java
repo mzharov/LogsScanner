@@ -1,5 +1,6 @@
 package ts.tsc.logscanner.inputline.inputparser;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -31,8 +32,20 @@ public class InputParser {
             return false;
         }
     }
-    public static boolean isAccessible(String path) {
+    public static boolean isDirAccessible(String path) {
         return Files.isWritable(Paths.get(path));
+    }
+
+    public static boolean isFileCreatable(String path) {
+        if(Files.exists(Paths.get(path))) {
+            return true;
+        }
+        try {
+            Files.createFile(Paths.get(path));
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
     public static boolean isRegular(String path) {
         if(Files.exists(Paths.get(path))) {
