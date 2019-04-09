@@ -117,9 +117,7 @@ public class Console implements ConsoleInterface{
         return true;
     }
 
-    /**
-     * Изменение из потока состояния флага записи на true
-     */
+
     public static void setFoundTrue() {
         found = true;
     }
@@ -134,9 +132,17 @@ public class Console implements ConsoleInterface{
      */
     private void search() {
 
-        Thread dirThread = new Thread(new CheckDirectory(this,
+        LogFileParser[] fileParsers = new LogFileParser[inputLine.getNumberOfThreads()];
+        for(int iterator = 0; iterator < fileParsers.length; iterator++) {
+            fileParsers[iterator] =
+                    new LogFileParser(this, inputLine, iterator+1);
+        }
+
+        Thread dirThread = new Thread(
+                new CheckDirectory(this,
                 inputLine.getInputDir(),
-                inputLine.getExtensions()));
+                inputLine.getExtensions(),
+                fileParsers));
         dirThread.start();
 
         //Установка времени начала поиска
@@ -145,8 +151,7 @@ public class Console implements ConsoleInterface{
         //Создание необходимого количества потоков с заданными параметрами
         Thread[] parseThreads = new Thread[inputLine.getNumberOfThreads()];
         for(int iterator = 0; iterator < parseThreads.length; iterator++) {
-            parseThreads[iterator] =
-                    new Thread(new LogFileParser(this, inputLine, iterator+1));
+            parseThreads[iterator] = new Thread(fileParsers[iterator]);
             parseThreads[iterator].start();
         }
 
@@ -216,8 +221,10 @@ public class Console implements ConsoleInterface{
 
                 //Проверка введенных данных
                 if(validateLine(input)) {
+                    //Поиск в директории если введена верная строка
                     search();
-                    System.out.println("> Введите новый запрос для поиска или введите слово exit  для выхода");
+                    System.out.println("> Введите новый запрос для поиска " +
+                            "или введите слово exit  для выхода");
                 }
             }
 

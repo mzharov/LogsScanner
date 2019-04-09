@@ -3,6 +3,7 @@ package ts.tsc.logscanner.thread;
 import ts.tsc.logscanner.console.Console;
 import ts.tsc.logscanner.console.ConsoleInterface;
 import ts.tsc.logscanner.inputline.InputLine;
+import ts.tsc.logscanner.observing.Observable;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -16,10 +17,9 @@ import java.util.List;
 /**
  * Поиск в файле указанной подстроки
  */
-public class LogFileParser implements Runnable{
+public class LogFileParser implements Runnable, Observable {
 
-    //private final LinkedList<Path> filesList;   // Список, в котором хранятся пути к файлам
-    private final ConsoleInterface console;
+    private final ConsoleInterface console;     //Интерфейс для доступа к списку путей к файлам
     private final InputLine inputLine;          // Структура для хранения входной строки
     private final int threadNumber;             //Номер потока
 
@@ -34,18 +34,25 @@ public class LogFileParser implements Runnable{
     }
 
     /**
-     * Попытка достать из начала связанного списка элемент.
-     * Если их там не осталось, завершаем выполнение потока,
-     * иначе достаем элемент и вызываем функцию поиска подстроки в файле
+     * Пока список путей к файлам не будет пуст и начальная директоря не будет
+     * полностью обойдена, попытка получить элемент из списка.
+     * Если объект получен, парсинг файла с указанным путем,
+     * иначе ожидание оповещения о том, что в список добавлен элемент
      */
     @Override
-    public void run() {
-        Path path;
-        while (true) {
+    public synchronized void run() {
+        Path path = null;
+        while (!(path == null && console.isSearchFinished())) {
             path = console.popListElement();
-            if(path == null && console.isSearchFinished()) break;
-            if(path == null) continue;
-            parseFile(path);
+            if(path == null) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                parseFile(path);
+            }
         }
     }
 
@@ -127,9 +134,14 @@ public class LogFileParser implements Runnable{
                 }
 
             }catch(IOException ex){
-                //System.out.println("Ошибка в ходе записи в файл");
+                System.out.println("Ошибка в ходе записи в файл");
                 ex.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public synchronized void update() {
+        notifyAll();
     }
 }
