@@ -41,7 +41,7 @@ public class UserInterface {
             return false;
         }
         if(!InputParser.parseNumberOfThreads(line[0])) {
-            System.out.println("> Указан неверный формат количества потоков");
+            System.out.println("> Указан неверный формат для количества потоков");
             return false;
         }
         if(!InputParser.checkNumberOfThreads(line[0])) {
@@ -52,7 +52,7 @@ public class UserInterface {
             System.out.println("> Не указан текст ошибки (введен пробел или пустое значение)");
             return false;
         }
-        if(!InputParser.errorTextLength(line[1])) {
+        if(!InputParser.checkMessageLength(line[1])) {
             System.out.println("> Текст для поиска должен содержать более одного символа");
             return false;
         }
@@ -60,8 +60,9 @@ public class UserInterface {
             System.out.println("> Не указана директория (введен пробел или пустое значение)");
             return false;
         }
-        if(InputParser.directoryNotExists(line[2])) {
-            System.out.println("> Директории, указанной в качестве начального каталога для поиска не существует");
+        if(InputParser.checkDirectory(line[2])) {
+            System.out.println("> Директории, указанной в качестве начального " +
+                    "каталога для поиска не существует: " + line[2]);
             return false;
         }
         if(InputParser.isEmpty(line[3])) {
@@ -69,8 +70,9 @@ public class UserInterface {
             return false;
         }
         int delimiter = line[3].lastIndexOf("\\");
-        if(InputParser.directoryNotExists(line[3].substring(0, delimiter))) {
-            System.out.println("> Директории, указанной для выходного файла не существует");
+        if(InputParser.checkDirectory(line[3].substring(0, delimiter))) {
+            System.out.println("> Директории, указанной для выходного файла не существует: "
+                    + line[3].substring(0, delimiter));
             return false;
         }
 
@@ -78,12 +80,13 @@ public class UserInterface {
         boolean[] validExtensions = new boolean[extensions.length];
         int count = 0;
         for(int iterator = 0; iterator < validExtensions.length; iterator++) {
-            boolean isMatches = InputParser.isExtensionMatches(extensions[iterator]);
+            boolean isMatches = InputParser.checkExtension(extensions[iterator]);
             if(isMatches) {
                 validExtensions[iterator] = true;
                 count++;
             } else {
-                System.out.println("> Строка " + extensions[iterator] + " не соответствует формату расширений");
+                System.out.println("> Строка " + extensions[iterator]
+                        + " не соответствует формату расширений");
             }
         }
 
@@ -178,8 +181,9 @@ public class UserInterface {
         //Установление флага в состояние false
         setFoundFalse();
     }
+
     /**
-     * Считывание входных параметров и запус потоков обработки
+     * Считывание входных параметров и запуск потоков обработки
      * @param args стандартные входные параметры
      */
     public static void main(String[] args) {
@@ -202,7 +206,6 @@ public class UserInterface {
                 if (input.toLowerCase().equals("exit")) {
                     break;
                 }
-
 
                 //Проверка введенных данных
                 if(validateLine(input)) {

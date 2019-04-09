@@ -12,7 +12,7 @@ public class InputParser {
     /**
      * Проверка количества входных параметров
      * @param length длина массива входных параметров
-     * @return true - если параметров 5; иначе - false
+     * @return true - если параметров 5 (расширения пока хранятся в одной строке); иначе - false
      */
     public static boolean checkArraySize(final int length) {
         return length == 5;
@@ -46,7 +46,7 @@ public class InputParser {
      * @param directory строка, хранящая директорию
      * @return true - если заданная директория существует; иначе - false
      */
-    public static boolean directoryNotExists(String directory) {
+    public static boolean checkDirectory(String directory) {
         try {
             Path path = Paths.get(directory);
             return !Files.exists(path);
@@ -56,11 +56,11 @@ public class InputParser {
     }
 
     /**
-     * Проверка на соответсвие расширения
+     * Проверка на соответствие расширения
      * @param extension строка, хранящая расширение
      * @return true - если соответсвует формату, иначе - false
      */
-    public static boolean isExtensionMatches(String extension) {
+    public static boolean checkExtension(String extension) {
         return extension.matches("(([0-9]*)[a-z]+([0-9]*))+");
     }
 
@@ -92,7 +92,7 @@ public class InputParser {
      * @param line текст ошибки
      * @return true - если длина больше 1; иначе - false
      */
-    public static boolean errorTextLength(String line) {
+    public static boolean checkMessageLength(String line) {
         return line.length() > 1;
     }
 }
