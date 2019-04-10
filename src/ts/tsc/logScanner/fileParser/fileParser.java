@@ -2,7 +2,7 @@ package ts.tsc.logScanner.fileParser;
 
 import ts.tsc.logScanner.console.Console;
 import ts.tsc.logScanner.console.ConsoleInterface;
-import ts.tsc.logScanner.inputLine.InputLine;
+import ts.tsc.logScanner.inputLine.LineInterface;
 import ts.tsc.logScanner.observing.Observable;
 
 import java.io.*;
@@ -17,17 +17,17 @@ import java.util.List;
 /**
  * Поиск в файле указанной подстроки
  */
-public class fileParserThread implements Runnable, Observable {
+public class fileParser implements Runnable, Observable {
 
     private final ConsoleInterface console;     //Интерфейс для доступа к списку
-    private final InputLine inputLine;          //Структура для хранения входной строки
+    private final LineInterface inputLine;
     private final int threadNumber;             //Номер потока
 
     /**
      * @param inputLine структура, в которой хранится входная строка
      * @param threadNumber номер потока
      */
-    public fileParserThread(ConsoleInterface console, InputLine inputLine, int threadNumber) {
+    public fileParser(ConsoleInterface console, LineInterface inputLine, int threadNumber) {
         this.console = console;
         this.inputLine = inputLine;
         this.threadNumber = threadNumber;
@@ -41,9 +41,8 @@ public class fileParserThread implements Runnable, Observable {
      */
     @Override
     public synchronized void run() {
-        Path path = null;
-        while (!(path == null && console.isSearchFinished())) {
-            path = console.popListElement();
+        while (!console.isSearchFinished()) {
+            Path path = console.popListElement();
             if(path == null) {
                 try {
                     wait();
@@ -80,17 +79,22 @@ public class fileParserThread implements Runnable, Observable {
                 subDirectory = "." + subDirectory.substring(0, subDirectory.length()-1);
             }
 
-            //Считываем, пока не будет найден конец файла
-            while ((line = bufferedReader.readLine()) != null) {
-
-                //Проверяем считанную строку на содержание подстроки
-                if(line.toLowerCase().contains(inputLine.getErrorMessage().toLowerCase())) {
-                    //Запись строки в список
-                    lines.add("[" + threadNumber + "] "
-                            + subDirectory + " - "
-                            + fileName + ": "
-                            + line);
+            try {
+                //Считываем, пока не будет найден конец файла
+                while ((line = bufferedReader.readLine()) != null) {
+                    //Проверяем считанную строку на содержание подстроки
+                    if(line.toLowerCase().contains(inputLine.getErrorMessage().toLowerCase())) {
+                        //Запись строки в список
+                        lines.add("[" + threadNumber + "] "
+                                + subDirectory + " - "
+                                + fileName + ": "
+                                + line);
+                    }
                 }
+            } catch (OutOfMemoryError e) {
+                System.out.println("В файле " + path +
+                        " не удалось произвести поиск подстроки в строке, " +
+                        "так как она имеет слишком большой размер");
             }
 
         } catch (IOException e) {

@@ -14,18 +14,21 @@ public interface ConsoleInterface {
 
     /**
      * Получение элемента из начала списка
+     *
      * @return Путь к файлу
      */
     Path popListElement();
 
     /**
      * Добавление элемента
+     *
      * @param path Путь к файлу
      */
     void addListElement(Path path);
 
     /**
      * Проверка завершения поиска файло в директории
+     *
      * @return true - поиск закончен, иначе - false
      */
     boolean isSearchFinished();

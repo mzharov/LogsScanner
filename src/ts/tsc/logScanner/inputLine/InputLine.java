@@ -3,14 +3,18 @@ package ts.tsc.logScanner.inputLine;
 /**
  * Класс для хранения введенных данных
  */
-public class InputLine {
+public class InputLine implements LineInterface{
     private final int numberOfThreads;    //Количество потоков
     private final String errorMessage;    //Подстрока с текстом для поиска
     private final String inputDir;        //Начальная директория
     private final String outputPath;      //Выходной файл
     private final String[] extensions;    //Массив необходимых расширений файлов
 
-    public InputLine(String numberOfThreads, String errorMessage, String inputDir, String outputPath, String[] extensions) {
+    public InputLine(String numberOfThreads,
+                     String errorMessage,
+                     String inputDir,
+                     String outputPath,
+                     String[] extensions) {
         this.numberOfThreads = Integer.parseInt(numberOfThreads);
         this.errorMessage = errorMessage;
         this.inputDir = inputDir;

@@ -1,9 +1,9 @@
 package ts.tsc.logScanner.console;
 
-import ts.tsc.logScanner.directory.CheckDirectoryThread;
+import ts.tsc.logScanner.directory.CheckDirectory;
 import ts.tsc.logScanner.inputLine.InputLine;
 import ts.tsc.logScanner.inputLine.inputParser.InputParser;
-import ts.tsc.logScanner.fileParser.fileParserThread;
+import ts.tsc.logScanner.fileParser.fileParser;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -48,16 +48,15 @@ public class Console implements ConsoleInterface{
      */
     private void search() {
 
-        fileParserThread[] fileParsers = new fileParserThread[inputLine.getNumberOfThreads()];
+        fileParser[] fileParsers = new fileParser[inputLine.getNumberOfThreads()];
         for(int iterator = 0; iterator < fileParsers.length; iterator++) {
             fileParsers[iterator] =
-                    new fileParserThread(this, inputLine, iterator+1);
+                    new fileParser(this, inputLine, iterator+1);
         }
 
         Thread dirThread = new Thread(
-                new CheckDirectoryThread(this,
-                inputLine.getInputDir(),
-                inputLine.getExtensions(),
+                new CheckDirectory(this,
+                inputLine,
                 fileParsers));
         dirThread.start();
 
@@ -100,7 +99,7 @@ public class Console implements ConsoleInterface{
             }
         }
         if(!found) {
-            System.out.println("> В логах не было найдено указанной подстроки: "
+            System.out.println("> В указанной директории не было найдено файлов, содержащих данную подстроку "
                     + inputLine.getErrorMessage());
         }
         if(!file.exists() && found) {
@@ -166,7 +165,7 @@ public class Console implements ConsoleInterface{
 
     @Override
     public synchronized boolean isSearchFinished() {
-        return dirEnd;
+        return dirEnd && filesList.size() == 0;
     }
 
     @Override
@@ -178,4 +177,5 @@ public class Console implements ConsoleInterface{
     public synchronized void setDirEndFalse() {
         dirEnd = false;
     }
+
 }
