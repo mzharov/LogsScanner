@@ -1,4 +1,4 @@
-package ts.tsc.logScanner.fileParserThread;
+package ts.tsc.logScanner.fileParser;
 
 import ts.tsc.logScanner.console.Console;
 import ts.tsc.logScanner.console.ConsoleInterface;
@@ -17,27 +17,27 @@ import java.util.List;
 /**
  * Поиск в файле указанной подстроки
  */
-public class LogFileParser implements Runnable, Observable {
+public class fileParserThread implements Runnable, Observable {
 
-    private final ConsoleInterface console;     //Интерфейс для доступа к списку путей к файлам
-    private final InputLine inputLine;          // Структура для хранения входной строки
+    private final ConsoleInterface console;     //Интерфейс для доступа к списку
+    private final InputLine inputLine;          //Структура для хранения входной строки
     private final int threadNumber;             //Номер потока
 
     /**
      * @param inputLine структура, в которой хранится входная строка
      * @param threadNumber номер потока
      */
-    public LogFileParser(ConsoleInterface console, InputLine inputLine, int threadNumber) {
+    public fileParserThread(ConsoleInterface console, InputLine inputLine, int threadNumber) {
         this.console = console;
         this.inputLine = inputLine;
         this.threadNumber = threadNumber;
     }
 
     /**
-     * Пока список путей к файлам не будет пуст и начальная директоря не будет
-     * полностью обойдена, попытка получить элемент из списка.
+     * Пока список путей к файлам не будет пуст и начальная директория не будет
+     * полностью просканирована (проверка по флагу), попытка получить элемент из списка.
      * Если объект получен, парсинг файла с указанным путем,
-     * иначе ожидание оповещения о том, что в список добавлен элемент
+     * иначе если список пуст - ожидание оповещения о том, что в список добавлен элемент
      */
     @Override
     public synchronized void run() {
@@ -142,6 +142,6 @@ public class LogFileParser implements Runnable, Observable {
 
     @Override
     public synchronized void update() {
-        notifyAll();
+        notify();
     }
 }

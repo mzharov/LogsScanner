@@ -1,9 +1,9 @@
 package ts.tsc.logScanner.console;
 
-import ts.tsc.logScanner.diretoryThread.CheckDirectory;
+import ts.tsc.logScanner.directory.CheckDirectoryThread;
 import ts.tsc.logScanner.inputLine.InputLine;
 import ts.tsc.logScanner.inputLine.inputParser.InputParser;
-import ts.tsc.logScanner.fileParserThread.LogFileParser;
+import ts.tsc.logScanner.fileParser.fileParserThread;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -18,9 +18,10 @@ public class Console implements ConsoleInterface{
     private static InputLine inputLine;                 //Структура для хранения строки
     private static final
     LinkedList<Path> filesList = new LinkedList<>();    //Список для хранения путей к файлам
-    private static boolean found  = false;              //Флаг, показывающий,
-                                                        // были ли найдены подстроки в указанных файлах
-    private static boolean dirEnd;
+    private static boolean found  = false;              /* Флаг, показывающий,
+                                                         * были ли найдены подстроки в указанных файлах
+                                                         * */
+    private static boolean dirEnd;                      //Флаг окончания обхода начальной директории
 
     /**
      * Проверка выходной строки на корректность
@@ -34,7 +35,6 @@ public class Console implements ConsoleInterface{
         return inputLine != null;
     }
 
-
     public static void setFoundTrue() {
         found = true;
     }
@@ -43,20 +43,19 @@ public class Console implements ConsoleInterface{
     }
     public static boolean getFound() {return found;}
 
-
     /**
      * Поиск подстроки в списке файлов из директории
      */
     private void search() {
 
-        LogFileParser[] fileParsers = new LogFileParser[inputLine.getNumberOfThreads()];
+        fileParserThread[] fileParsers = new fileParserThread[inputLine.getNumberOfThreads()];
         for(int iterator = 0; iterator < fileParsers.length; iterator++) {
             fileParsers[iterator] =
-                    new LogFileParser(this, inputLine, iterator+1);
+                    new fileParserThread(this, inputLine, iterator+1);
         }
 
         Thread dirThread = new Thread(
-                new CheckDirectory(this,
+                new CheckDirectoryThread(this,
                 inputLine.getInputDir(),
                 inputLine.getExtensions(),
                 fileParsers));
@@ -174,6 +173,7 @@ public class Console implements ConsoleInterface{
     public synchronized void setDirEndTrue() {
         dirEnd = true;
     }
+
     @Override
     public synchronized void setDirEndFalse() {
         dirEnd = false;

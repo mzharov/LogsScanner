@@ -1,4 +1,4 @@
-package ts.tsc.logScanner.diretoryThread;
+package ts.tsc.logScanner.directory;
 
 import ts.tsc.logScanner.console.ConsoleInterface;
 import ts.tsc.logScanner.inputLine.inputParser.InputParser;
@@ -14,17 +14,17 @@ import java.nio.file.attribute.BasicFileAttributes;
 /**
  * Класс для обхода начальной директории
  */
-public class CheckDirectory implements Runnable {
+public class CheckDirectoryThread implements Runnable {
     private final ConsoleInterface console;     //Интерфейс класс Console для доступа к списку путей
     private final String directory;             //Начальная директория
     private final String[] extensions;          //Список расширений
     private final Observable[] observables;     /*Массив "наблюдателей", которых надо оповестить
                                                 о добавлении элемента в список*/
 
-    public CheckDirectory(ConsoleInterface console,
-                          String directory,
-                          String[] extensions,
-                          Observable[] observables) {
+    public CheckDirectoryThread(ConsoleInterface console,
+                                String directory,
+                                String[] extensions,
+                                Observable[] observables) {
         this.console = console;
         this.directory = directory;
         this.extensions = extensions;
@@ -44,7 +44,8 @@ public class CheckDirectory implements Runnable {
                     BasicFileAttributes attrs =
                             Files.readAttributes(entry, BasicFileAttributes.class);
 
-                    /* Если файл является обычным и его расширение есть в списке заданных,
+                    /*
+                     * Если файл является обычным и его расширение есть в списке заданных,
                      * то осуществляется добавление пути к нему в список и оповещение наблюдателей
                      */
                     if(attrs.isRegularFile() && InputParser.isRightExtension(entry, extensions)) {

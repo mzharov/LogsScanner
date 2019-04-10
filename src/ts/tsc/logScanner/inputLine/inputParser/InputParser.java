@@ -34,10 +34,22 @@ public class InputParser {
             return false;
         }
     }
+
+    /**
+     * Проверка доступности директории для записи
+     * @param path Путь к директории
+     * @return true - доступна; иначе - false
+     */
     private static boolean isDirWritable(String path) {
         return Files.isWritable(Paths.get(path));
     }
 
+    /**
+     * Проверка возможности создавать в директории файлы
+     * (например для проверки корневых дисков)
+     * @param path Путь к директории
+     * @return true - возможно; иначе - false
+     */
     private static boolean isFileCreatable(String path) {
         if(Files.exists(Paths.get(path))) {
             return true;
@@ -50,6 +62,12 @@ public class InputParser {
             return false;
         }
     }
+
+    /**
+     * Определение типа файла
+     * @param path Путь к файлу
+     * @return true - обычный файл, иначе - false
+     */
     private static boolean isRegular(String path) {
         if(Files.exists(Paths.get(path))) {
             return Files.isRegularFile(Paths.get(path));
@@ -81,14 +99,13 @@ public class InputParser {
         }
     }
 
-
     /**
      * Проверка на соответствие расширения
      * @param extension строка, хранящая расширение
      * @return true - если соответсвует формату, иначе - false
      */
-    private static boolean checkExtension(String extension) {
-        return extension.matches("(([0-9]*)[a-z]+([0-9]*))+");
+    private static boolean checkFileName(String extension) {
+        return extension.matches("[^/:*?\">|]+");
     }
 
     /**
@@ -126,10 +143,10 @@ public class InputParser {
     /**
      * Проверка входной строки на корректность
      * @param inputString входная строка
-     * @return  true - если все элементы соотвествуют необходимым параметрам;
-     *          false -  1) если хотя бы один элемент не соответствует формату,
-     *                   2) если указанные директории не существуют,
-     *                   3) если не были указаны расширения или они имеют неправильынй формат
+     * @return  инициализированный объект InputLine если все элементы соответствуют необходимым параметрам;
+     *          null - 1) если хотя бы один элемент не соответствует формату,
+     *                 2) если указанные директории не существуют,
+     *                 3) если не были указаны расширения или они имеют неправильынй формат
      */
     public static InputLine validateLine(String inputString) {
 
@@ -176,11 +193,11 @@ public class InputParser {
 
         int delimiter = line[3].lastIndexOf("\\");
         if(delimiter == -1) {
-            System.out.println("> " + line[3] + " не является файлом");
+            System.out.println("> Не указан выходной файл");
             return null;
         }
         String tmpOutPath = line[3].substring(0, delimiter);
-        String tmpFile = line[3].substring(delimiter);
+        String tmpFile = line[3].substring(delimiter+1);
         if(InputParser.checkDirectory(tmpOutPath)) {
             System.out.println("> Директории, указанной для выходного файла не существует: "
                     + tmpOutPath);
@@ -193,10 +210,17 @@ public class InputParser {
             return null;
         }
 
-        if(!InputParser.isRegular(line[3])) {
-            System.out.println("> " + tmpFile + " не является файлом");
+        if(!InputParser.checkFileName(tmpFile)) {
+            System.out.println("> Указанное для выходного файла имя содержит недопустимые символы: "
+                    + tmpFile);
             return null;
         }
+
+        if(!InputParser.isRegular(line[3])) {
+            System.out.println("> Не указан выходной файл");
+            return null;
+        }
+
 
         if(!InputParser.isFileCreatable(line[3])) {
             System.out.println("> Нельзя создать выходной файл в указанной директории: "
@@ -213,8 +237,7 @@ public class InputParser {
         boolean[] validExtensions = new boolean[extensions.length];
         int count = 0;
         for(int iterator = 0; iterator < validExtensions.length; iterator++) {
-            boolean isMatches = InputParser.checkExtension(extensions[iterator]);
-            if(isMatches) {
+            if(InputParser.checkFileName(extensions[iterator])) {
                 validExtensions[iterator] = true;
                 count++;
             } else {
