@@ -47,7 +47,7 @@ public class fileParser implements Runnable, Observable {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    System.out.print("Ошибка в ходе работы потока");
                 }
             } else {
                 parseFile(path);
@@ -138,7 +138,7 @@ public class fileParser implements Runnable, Observable {
 
             }catch(IOException ex){
                 System.out.println("Ошибка в ходе записи в файл");
-                ex.printStackTrace();
+                //ex.printStackTrace();
             }
         }
     }

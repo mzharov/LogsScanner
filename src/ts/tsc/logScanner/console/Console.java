@@ -64,7 +64,7 @@ public class Console implements ConsoleInterface{
         double startTime = System.nanoTime();
 
         //Создание необходимого количества потоков с заданными параметрами
-        Thread[] parseThreads = new Thread[inputLine.getNumberOfThreads()];
+        Thread[] parseThreads = new Thread[fileParsers.length];
         for(int iterator = 0; iterator < parseThreads.length; iterator++) {
             parseThreads[iterator] = new Thread(fileParsers[iterator]);
             parseThreads[iterator].start();
