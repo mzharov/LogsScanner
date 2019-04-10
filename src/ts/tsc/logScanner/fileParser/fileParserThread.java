@@ -67,25 +67,24 @@ public class fileParserThread implements Runnable, Observable {
         try (BufferedReader bufferedReader = Files.newBufferedReader(path, Charset.forName("ISO-8859-1"))) {
             String line;
 
+            String directory = inputLine.getInputDir();
+            String pathString = path.toString();
+
+            //Преобразование путей в необходимый формат
+            int index = pathString.lastIndexOf("\\");
+            String subDirectory = pathString.substring(directory.length(), index+1);
+            String fileName = pathString.substring(index+1);
+            if(subDirectory.equals("\\")) {
+                subDirectory = ".\\";
+            } else {
+                subDirectory = "." + subDirectory.substring(0, subDirectory.length()-1);
+            }
+
             //Считываем, пока не будет найден конец файла
             while ((line = bufferedReader.readLine()) != null) {
 
                 //Проверяем считанную строку на содержание подстроки
                 if(line.toLowerCase().contains(inputLine.getErrorMessage().toLowerCase())) {
-
-                    String directory = inputLine.getInputDir();
-                    String pathString = path.toString();
-
-                    //Преобразование путей в необходимый формат
-                    int index = pathString.lastIndexOf("\\");
-                    String subDirectory = pathString.substring(directory.length(), index+1);
-                    String fileName = pathString.substring(index+1);
-                    if(subDirectory.equals("\\")) {
-                        subDirectory = ".\\";
-                    } else {
-                        subDirectory = "." + subDirectory.substring(0, subDirectory.length()-1);
-                    }
-
                     //Запись строки в список
                     lines.add("[" + threadNumber + "] "
                             + subDirectory + " - "
@@ -109,6 +108,7 @@ public class fileParserThread implements Runnable, Observable {
      * @param path путь к файлу
      */
     private synchronized void writeToFile(List<String> lines, Path path) {
+        int i = -1;
         //Если список не пуст начинаем запись
         if(lines.size() > 0) {
             /*
@@ -116,11 +116,12 @@ public class fileParserThread implements Runnable, Observable {
             * Если он существует, режим добавления в конец,
             * иначе создание нового и запись в него
             */
-            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("ISO-8859-1"),
+            try(BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)){
 
                 // Запись списка строковых значений в файл
                 for(String line : lines) {
+                    i++;
                     writer.write(line);
                     writer.newLine();
                 }
@@ -134,6 +135,7 @@ public class fileParserThread implements Runnable, Observable {
                 }
 
             }catch(IOException ex){
+                System.out.println(lines.get(i));
                 System.out.println("Ошибка в ходе записи в файл");
                 ex.printStackTrace();
             }
