@@ -112,7 +112,6 @@ public class fileParser implements Runnable, Observable {
      * @param path путь к файлу
      */
     private synchronized void writeToFile(List<String> lines, Path path) {
-        int i = -1;
         //Если список не пуст начинаем запись
         if(lines.size() > 0) {
             /*
@@ -125,7 +124,6 @@ public class fileParser implements Runnable, Observable {
 
                 // Запись списка строковых значений в файл
                 for(String line : lines) {
-                    i++;
                     writer.write(line);
                     writer.newLine();
                 }
@@ -139,7 +137,6 @@ public class fileParser implements Runnable, Observable {
                 }
 
             }catch(IOException ex){
-                System.out.println(lines.get(i));
                 System.out.println("Ошибка в ходе записи в файл");
                 ex.printStackTrace();
             }
